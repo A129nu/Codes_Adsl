@@ -1,0 +1,688 @@
+lab 1:-
+
+#include<iostream>
+using namespace std;
+#include<stdlib.h>
+#define MAX 30
+//Check the Character is Operand or Not
+int isoperand(char ch)
+{
+    if((ch>='A'  && ch<='Z')||(ch>='a'  && ch<='z')||(ch>='0'  && ch<='9'))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+//Check the Character is Operator or Not
+int isoperator(char ch)
+{
+	if(ch=='$'||ch=='^'||ch=='+'||ch=='-'||ch=='*'||ch=='/')
+		return 1;
+	else
+		return 0;
+}
+//Declare a self Referential Structure for Tree Nodes
+struct Treenode
+{
+	Treenode *lchild;
+	char data;
+	Treenode *rchild;
+};
+
+//Declare Class
+class ET
+{
+		Treenode *root;
+	public:
+	    ET();//Constructor
+	    void create(char postfix[MAX]);
+		void inorder();//Wrapper Function as accessing private member root is not accessible in the main function
+		void inorder(Treenode *);
+		void preorder();//Wrapper Function
+		void preorder(Treenode *);
+		void postorder();//Wrapper Function
+		void postorder(Treenode *);
+		void inorder_nrc();
+		void preorder_nrc();
+		void postorder_nrc();
+};
+//Initialize root to NULL
+ET::ET()
+{
+	root=NULL;
+}
+
+//For Building Expression Tree from prefix Expression
+void ET::create(char prefix[MAX])
+{
+    //Declare Stack
+	Treenode *stack[MAX];
+	int top=-1;
+
+	int i,len,val;
+	char ch;
+	Treenode *temp;
+
+	//Calculate length of the prefix expression
+	for(i=0;prefix[i]!='\0';i++);
+	len=i-1;
+
+	//Scan the prefix expression from right to left
+	for(i=len;i>=0;i--)
+	{
+		ch=prefix[i];
+		//Create and Initialize a new node in the memory
+		temp=new Treenode;
+		temp->lchild=NULL;
+		temp->data=ch;
+		temp->rchild=NULL;
+
+		//If the character is operand push the address on stack
+        if(isoperand(ch))
+		{
+			stack[++top]=temp;
+		}
+		//If the character is operator pop two addresses from stack and built a sub tree,
+		//Push the parents address back on the stack
+		else if(isoperator(ch))
+		{
+			temp->lchild=stack[top--];
+			temp->rchild=stack[top--];
+			stack[++top]=temp;
+		}
+		else
+		{
+			cout<<"\nWrong expression tree";
+			cout<<"\nNode cannot be created";
+			exit(0);
+		}
+	}
+	//Once scanning the expression from right to left is over pop the address from stack and store it as root address
+	root=stack[top--];
+}
+void ET::inorder()
+{
+	if(root)
+		inorder(root);
+	else
+		cout<<"\nEmpty expression tree";
+}
+void ET::inorder(Treenode *root)
+{
+    //LDR
+	if(root)
+	{
+        //Traverse Left
+		inorder(root->lchild);
+		//Print Data
+		cout<<root->data<<" ";
+		//Traverse Right
+		inorder(root->rchild);
+	}
+}
+void ET::preorder()
+{
+	if(root)
+		preorder(root);
+	else
+		cout<<"\nEmpty expression tree";
+}
+void ET::preorder(Treenode *root)
+{
+    //DLR
+	if(root)
+	{
+	    //Print Data
+		cout<<root->data<<" ";
+		//Traverse Left
+		preorder(root->lchild);
+        //Traverse Right
+		preorder(root->rchild);
+	}
+}
+void ET::postorder()
+{
+	if(root)
+		postorder(root);
+	else
+		cout<<"\nEmpty expression tree";
+}
+void ET::postorder(Treenode *root)
+{
+    //DLR
+	if(root)
+	{
+
+		//Traverse Left
+		postorder(root->lchild);
+        //Traverse Right
+		postorder(root->rchild);
+        //Print Data
+		cout<<root->data<<" ";
+	}
+}
+void ET::inorder_nrc()
+{
+	Treenode *curr=root;
+	Treenode *stack[MAX];
+	int top=-1;
+	while(1)
+	{
+		while(curr!=NULL)
+		{
+			stack[++top]=curr;
+			curr=curr->lchild;//Traverse Left
+		}
+		if(top!=-1)
+		{
+			curr=stack[top--];
+			cout<<curr->data<<" "; //Print Data
+			curr=curr->rchild;  //Traverse Right
+		}
+		else
+			break;
+	}
+}
+void ET::preorder_nrc()
+{
+	Treenode *curr=root;
+	Treenode *stack[MAX];
+	int top=-1;
+	while(1)
+	{
+		while(curr!=NULL)
+		{
+			cout<<curr->data<<" "; //Print Data
+			stack[++top]=curr;
+			curr=curr->lchild;  //Traverse Left
+		}
+		if(top!=-1)
+		{
+			curr=stack[top--];
+
+			curr=curr->rchild;  //Traverse Right
+		}
+		else
+			break;
+	}
+}
+
+void ET::postorder_nrc()
+{
+	Treenode *curr=root;
+	Treenode *stack[MAX];
+	int top=-1,flag[MAX],f;
+	while(1)
+	{
+		if(curr!=NULL)
+		{
+
+
+			stack[++top]=curr;
+			flag[top]=0;
+			curr=curr->lchild;  //Traverse Left
+		}
+		else
+        {
+            	if(top!=-1)
+                {
+                    f=flag[top];
+                    curr=stack[top--];
+                    if(f==0)
+                    {
+                        stack[++top]=curr;
+                        flag[top]=1;
+                        curr=curr->rchild;  //Traverse Right
+                    }
+
+                    else if (f==1)
+                    {
+                        cout<<curr->data<<" "; //Print Data
+                        curr=NULL;
+                    }
+                }
+                else
+                    break;
+        }
+
+	}
+}
+
+int main()
+{
+	int ch;
+	char prefix[MAX];
+	ET e;
+
+	cout<<"\nEnter a prefix expression";
+	cin>>prefix;
+	while(1)
+	{
+		cout<<"\n********MENU********";
+		cout<<"\n1.Create a expression tree\n2.Inorder Traversal (Recursive)\n3.Preorder Traversal (Recursive)";
+		cout<<"\n4.Postorder (Recursive)\n5.Inorder Traversal(Non Recursive)\n6.Preorder Traversal(Non Recursive)";
+		cout<<"\n7.Post order Traversal(Non Recursive)\n8.Exit";
+		cout<<"\nEnter your choice";
+		cin>>ch;
+		switch(ch)
+		{
+			case 1: e.create(prefix);
+				cout<<"\nExpression Tree Created from Prefix Expression\n";
+				break;
+			case 2: e.inorder(); //Call the wrapper function
+				break;
+			case 3: e.preorder(); //Call the wrapper function
+				break;
+            case 4: e.postorder(); //Call the wrapper function
+				break;
+			case 5: e.inorder_nrc();
+				break;
+			case 6: e.preorder_nrc();
+				break;
+            case 7: e.postorder_nrc();
+				break;
+			case 8:exit(0);
+		}
+	}
+
+}
+
+
+Lab 2:-
+
+#include <iostream>
+#include<string>
+using namespace std;
+class dictionary;
+class node
+{
+     string word,meaning;
+     node *left,*right;
+    public:
+     friend class dictionary;
+     node()
+     {
+      left=NULL;
+      right=NULL;
+
+     }
+     node(string word, string meaning)
+     {
+      this->word=word;
+      this->meaning=meaning;
+      left=NULL;
+      right=NULL;
+     }
+};
+
+class dictionary
+{
+     node *root;
+    public:
+         dictionary()
+        {
+          root=NULL;
+        }
+     void create();
+     void inorder_rec(node *rnode);
+     void postorder_rec(node *rnode);
+     void inorder()
+     {
+      inorder_rec(root);
+     }
+     void postorder();
+
+     bool insert(string word,string meaning);
+     int search(string key);
+
+};
+int dictionary::search(string key)
+{
+     node *tmp=root;
+     int count;
+     if(tmp==NULL)
+     {
+      return -1;
+     }
+     if(root->word==key)
+      return 1;
+     while(tmp!=NULL)
+     {
+
+      if((tmp->word)>key)
+      {
+       tmp=tmp->left;
+       count++;
+      }
+      else if((tmp->word)<key)
+      {
+       tmp=tmp->right;
+       count++;
+      }
+      else if(tmp->word==key)
+      {
+       return ++count;
+      }
+     }
+ return -1;
+
+}
+void dictionary::postorder()
+{
+ postorder_rec(root);
+}
+void dictionary::postorder_rec(node *rnode)
+{
+ if(rnode)
+ {
+  postorder_rec(rnode->right);
+  cout<<" "<<rnode->word<<" : "<<rnode->meaning<<endl;
+  postorder_rec(rnode->left);
+ }
+}
+void dictionary::create()
+{
+     int n;
+     string wordI,meaningI;
+     cout<<"\n How many Word to insert?:\n";
+     cin>>n;
+     for(int i=0;i<n;i++)
+     {
+      cout<<"\n Enter Word: ";
+      cin>>wordI;
+      cout<<"\n Enter Meaning: ";
+      cin>>meaningI;
+      insert(wordI,meaningI);
+     }
+}
+void dictionary::inorder_rec(node *rnode)
+{
+     if(rnode)
+     {
+      inorder_rec(rnode->left);
+      cout<<" "<<rnode->word<<" : "<<rnode->meaning<<endl;
+      inorder_rec(rnode->right);
+     }
+}
+bool dictionary::insert(string word, string meaning)
+{
+     node *p=new node(word, meaning);
+     if(root==NULL)
+     {
+      root=p;
+      return true;
+     }
+     node *cur=root;
+     node *par=root;
+     while(cur!=NULL) //traversal
+     {
+      if(word>cur->word)
+      {par=cur;
+      cur=cur->right;
+      }
+      else if(word<cur->word)
+      {
+       par=cur;
+       cur=cur->left;
+      }
+      else
+      {
+       cout<<"\n Word is already in the dictionary.";
+       return false;
+      }
+     }
+     if(word>par->word) //insertion of node
+     {
+      par->right=p;
+      return true;
+     }
+     else
+     {
+      par->left=p;
+
+      return true;
+     }
+}
+
+int main() {
+ string word;
+ dictionary months;
+ months.create();
+ cout<<"\n Ascending order\n";
+ months.inorder();
+
+ cout<<"\n Descending order:\n";
+ months.postorder();
+
+ cout<<"\n Enter word to search: ";
+ cin>>word;
+ int comparisons=months.search(word);
+ if(comparisons==-1)
+ {
+  cout<<"\n Not found word";
+ }
+ else
+ {
+  cout<<"\n "<<word<<" found in "<<comparisons<<" comparisons";
+ }
+ return 0;
+}
+
+
+Lab 3:-
+
+#include <iostream>
+using namespace std;
+struct  tnode
+{
+    int info;   // node value
+    struct tnode *left; //left child pointer
+    struct tnode *right; //right child pointer
+};
+
+class bintree
+{
+    tnode *root;
+    public:
+         bintree()  //constructor
+        {
+        root =NULL;
+        }
+          int isEmpty() //function to check if tree is empty
+          {
+              if(root==NULL)
+                  return 1;
+              return 0;
+          }
+         void printGivenLevel(tnode* root, int level);
+         void printLevelOrder(); //print levelwise
+         void maxDepth1(); //prints height of tree wrapper
+         void plnode(); //print leaf nodes wrapper
+         void printLeafNodes(tnode* root);
+         int  maxDepth(tnode* node);
+         void insert(int val); //insertion of node in tree
+         void mirror1();
+         void mirror(struct tnode *);//create mirror image
+};
+void bintree::plnode()
+{
+
+    cout<<endl<<"leaf nodes are:";
+    printLeafNodes(root);
+}
+void bintree:: printLeafNodes(tnode *root)
+{
+    // if node is null, return
+    if (!root)
+        return;
+
+    // if node is leaf node, print its data
+    if (!root->left && !root->right)
+    {
+        cout << root->info << " ";
+        return;
+    }
+    // if left child exists, check for leaf recursively
+    if (root->left)
+       printLeafNodes(root->left);
+
+    // if right child exists, check for leaf recursively
+    if (root->right)
+       printLeafNodes(root->right);
+}
+
+void bintree::insert(int v)
+{
+    tnode *ctnode = new tnode;
+    tnode *parent;
+    ctnode->info =v;
+    ctnode->left=NULL;
+    ctnode->right=NULL;
+    parent=NULL;
+   if(isEmpty())
+    {
+        root=ctnode;
+    }
+    else
+    {
+        tnode *p=root;
+        while(p!=NULL)
+        {
+            parent =p;
+            if(v>p->info)
+                p=p->right;
+            else
+                p=p->left;
+        }
+        if(v<parent->info)
+            parent->left=ctnode;
+        else
+            parent->right=ctnode;
+    }
+}
+
+void bintree::printGivenLevel(tnode* root, int level)
+{
+    if (root == NULL)
+        return;
+    if (level == 1)
+        cout<<root->info<<" ";
+    else if (level > 1) {
+        printGivenLevel(root->left, level - 1);
+        printGivenLevel(root->right, level - 1);
+    }
+}
+
+void bintree::printLevelOrder()
+{
+    int h = maxDepth(root);
+    int i;
+    cout<<endl<<"level wise"<<endl;
+    for (i = 1; i <= h; i++) {
+        printGivenLevel(root, i);
+        cout<<endl;
+    }
+}
+void bintree::  maxDepth1()
+{
+int d = maxDepth(root);
+cout<<"height:"<<d;
+}
+    int bintree:: maxDepth(tnode* node)
+{
+    if (node == NULL)
+        return 0;
+    else {
+        /* compute the depth of each subtree */
+        int lDepth = maxDepth(node->left);
+        int rDepth = maxDepth(node->right);
+
+        /* use the larger one */
+        if (lDepth > rDepth)
+            return (lDepth + 1);
+        else
+            return (rDepth + 1);
+    }
+}
+
+void bintree:: mirror1()
+    {
+        cout<<endl<<"mirror image is :";
+        mirror(root);
+        printLevelOrder();
+    }
+
+ void bintree:: mirror(struct tnode *node)
+    {
+        if(node==NULL)
+        {
+            return;
+        }
+        else
+        {
+            struct tnode *temp;
+            mirror(node->left);
+            mirror(node->right);
+
+            temp=node->left;
+            node->left=node->right;
+            node->right=temp;
+        }
+     }
+
+
+int main()
+{
+	bintree b;
+	int ch,ch1,n,d;
+	do
+     {
+        cout<<"1.Create Binary Search Tree (BST)"<<endl;
+        cout<<"2.Insert a node in BST "<<endl;
+        cout<<"3.Display BST levelwise"<<endl;
+        cout<<"4.Create Mirror image of BST"<<endl;
+        cout<<"5.Display leaf nodes"<<endl;
+        cout<<"6.Display height of BST"<<endl;
+        cout<<"Enter your choice : ";
+        cin>>ch1;
+        switch(ch1)
+        {
+            case 1: cout<<"How many nodes in BST : ";
+                    cin>>n;
+                    for(int i=1;i<=n;i++)
+                    {
+                        cout<<"Enter data for node "<<i;
+                        cin>>d;
+                        b.insert(d);
+                    }
+                    break;
+            case 2: cout<<"Enter data for node";
+                    cin>>d;
+                    b.insert(d);
+                    break;
+            case 3:
+                    b.printLevelOrder();
+                    break;
+            case 4:
+                    b.mirror1();
+                    break;
+            case 5:
+                    b.plnode();
+                    break;
+            case 6:
+                    b.maxDepth1();
+                    break;
+            default:
+                    cout<<endl<<"Enter valid choice";
+                    break;
+
+        }
+cout<<endl<<"Do you want to continue? Press 1 to continue else 0 :";
+cin>>ch;
+
+}while(ch==1);
+return 0;
+}
